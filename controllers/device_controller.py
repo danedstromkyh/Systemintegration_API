@@ -6,6 +6,7 @@ This file helps our blueprints get the data
 from the database using our models.
 """
 
+
 def create_device(sensor_type, user_id):
     from controllers.user_controller import get_user_by_id
     user = get_user_by_id(user_id)
