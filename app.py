@@ -12,21 +12,7 @@ from flask_mqtt import Mqtt
 db = MongoEngine()
 
 
-def create_app():
-    """
-    Initializes our API
-    :return: app object
-    """
-    load_dotenv()
-    app = Flask(__name__)
-    app.secret_key = os.environ.get('APP_SECRET_KEY')
-
-    app.config['MONGODB_SETTINGS'] = {
-        'host': os.environ.get('M_URI')
-    }
-    db.init_app(app)
-
-    # Ställ in MQTT-klienten
+# Ställ in MQTT-klienten
     app.config['MQTT_BROKER_URL'] = 'broker.hivemq.com'
     app.config['MQTT_BROKER_PORT'] = 1883
     app.config['MQTT_USERNAME'] = ''
@@ -60,6 +46,22 @@ def create_app():
         # a = Append, lägg till ny text på slutet av filen
         with open(file='storage.txt', mode='w', encoding='utf-8') as file:
             file.write(m_payload)
+
+def create_app():
+    """
+    Initializes our API
+    :return: app object
+    """
+    load_dotenv()
+    app = Flask(__name__)
+    app.secret_key = os.environ.get('APP_SECRET_KEY')
+
+    app.config['MONGODB_SETTINGS'] = {
+        'host': os.environ.get('M_URI')
+    }
+    db.init_app(app)
+
+
 
     # Gör en route som skriver ut ett sparat meddelande
     @app.route('/get/')
