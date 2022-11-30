@@ -1,0 +1,3 @@
+M_URI='mongodb+srv://home-assistant-API:uZpNlsVvQwLjb83y@home-assistant-api.e7zam.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
+JSON_SECRET_KEY='JsonWebTokenSecretKey'
+APP_SECRET_KEY='FlaskSecretKey'
