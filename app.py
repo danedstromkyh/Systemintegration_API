@@ -1,67 +1,83 @@
 import os
-import random
-
-import MongoEngine as MongoEngine
-import pymongo
-from flask import Flask, render_template, jsonify
-from flask.cli import load_dotenv
-from flask_login import LoginManager
+from urllib.parse import quote_plus
+from flask_mongoengine import MongoEngine
+from flask_pymongo import pymongo
+from flask import Flask, jsonify
+from dotenv import load_dotenv
 from flask_mqtt import Mqtt
 
+app = Flask(__name__)
+#db = MongoEngine()
 
-db = MongoEngine()
 
 
 # Ställ in MQTT-klienten
-    app.config['MQTT_BROKER_URL'] = 'broker.hivemq.com'
-    app.config['MQTT_BROKER_PORT'] = 1883
-    app.config['MQTT_USERNAME'] = ''
-    app.config['MQTT_PASSWORD'] = ''
-    app.config['MQTT_KEEPALIVE'] = 5  # Sekunder
-    app.config['MQTT_TLS_ENABLED'] = False
+app.config['MQTT_BROKER_URL'] = 'broker.hivemq.com'
+app.config['MQTT_BROKER_PORT'] = 1883
+app.config['MQTT_USERNAME'] = ''
+app.config['MQTT_PASSWORD'] = ''
+app.config['MQTT_KEEPALIVE'] = 5  # Sekunder
+app.config['MQTT_TLS_ENABLED'] = False
 
-    topic = '/kyh/example_mqtt_flask'
+topic = '/kyh/example_mqtt_flask'
 
-    mqtt_client = Mqtt(app)
+mqtt_client = Mqtt(app)
 
-    # Hantera MQTT-connect
-    @mqtt_client.on_connect()
-    def handle_connect(client, userdata, flags, rc):
-        if rc == 0:
-            print('Connected successfully')
-            mqtt_client.subscribe(topic)
-        else:
-            print('Something went wrong:', rc)
+# Hantera MQTT-connect
+@mqtt_client.on_connect()
+def handle_connect(client, userdata, flags, rc):
+    if rc == 0:
+        print('Connected successfully')
+        mqtt_client.subscribe(topic)
+    else:
+        print('Something went wrong:', rc)
 
-    # On-message-funktion
-    @mqtt_client.on_message()
-    def handle_mqtt_message(client, userdata, message):
-        m_topic = message.topic
-        m_payload = message.payload.decode('utf-8')
-        print(f'Received message on topic: {m_topic}: {m_payload}')
+# On-message-funktion
+@mqtt_client.on_message()
+def handle_mqtt_message(client, userdata, message):
+    m_topic = message.topic
+    m_payload = message.payload.decode('utf-8')
+    print(f'Received message on topic: {m_topic}: {m_payload}')
 
-        # Spara m_payload till en textfil
-        # w = Skriv över hela innehållet varje gång filen öppnas
-        # r = Får bara läsa från filer
-        # a = Append, lägg till ny text på slutet av filen
-        with open(file='storage.txt', mode='w', encoding='utf-8') as file:
-            file.write(m_payload)
+    # Spara m_payload till en textfil
+    # w = Skriv över hela innehållet varje gång filen öppnas
+    # r = Får bara läsa från filer
+    # a = Append, lägg till ny text på slutet av filen
+    with open(file='storage.txt', mode='w', encoding='utf-8') as file:
+        file.write(m_payload)
 
-def create_app():
+def create_app(app):
     """
     Initializes our API
     :return: app object
     """
     load_dotenv()
-    app = Flask(__name__)
     app.secret_key = os.environ.get('APP_SECRET_KEY')
+    #mongo_uri = "mongodb+srv://edvin:" + urllib.parse.quote("Xih*hLy@gWqc2&9dmCCDTbdBumJdcWz") + "@kyhdb.tmgj0.mongodb.net/?retryWrites=true&w=majority"
+    #app.config['MONGODB_SETTINGS'] = {
+    #    'host': mongo_uri }
+    #db.init_app(app)
 
-    app.config['MONGODB_SETTINGS'] = {
-        'host': os.environ.get('M_URI')
-    }
-    db.init_app(app)
+    username = quote_plus('edvin')
+
+    password = quote_plus('Xih*hLy@gWqc2&9dmCCDTbdBumJdcWz')
 
 
+    uri = 'mongodb+srv://edvin:' + password + '@kyhdb.tmgj0.mongodb.net/?retryWrites=true&w=majority'
+
+    client = pymongo.MongoClient(uri)
+
+    #CONNECTION_STRING = "mongodb+srv://edvin:" + urllib.parse.quote("Xih*hLy@gWqc2&9dmCCDTbdBumJdcWz") + "@kyhdb.tmgj0.mongodb.net/?retryWrites=true&w=majority"
+    #client = pymongo.MongoClient(CONNECTION_STRING)
+    db = client.get_database('flask_mongodb_atlas')
+    user_collection = pymongo.collection.Collection(db, 'user_collection')
+
+
+
+    @app.route("/test/")
+    def test():
+        db.db.collection.insert_one({"name": "John"})
+        return "Connected to the data base!"
 
     # Gör en route som skriver ut ett sparat meddelande
     @app.route('/get/')
@@ -70,33 +86,9 @@ def create_app():
             data = file.read()
         return jsonify({'text': data}), 200
 
-    """ Exempel på en annan route:
-    @app.route('/temperature/<room>')
-    def get_temperature(room):
-        pass
-    """
-
-    login_manager = LoginManager()
-    login_manager.init_app(app)
-
-    @login_manager.user_loader
-    def load_user(user_id):
-        import models
-        user = models.User.objects.get(id=user_id)
-        return user
-
-    from blueprints.open_api import bp_open_api
-    app.register_blueprint(bp_open_api, url_prefix='/api/v1.0/')
-    from blueprints.user_api import bp_user_api
-    app.register_blueprint(bp_user_api, url_prefix='/api/v1.0/')
-    from blueprints.device_api import bp_device_api
-    app.register_blueprint(bp_device_api, url_prefix='/api/v1.0/')
-    from blueprints.datapoint_api import bp_datapoint_api
-    app.register_blueprint(bp_datapoint_api, url_prefix='/api/v1.0/')
-
     return app
 
 
 if __name__ == "__main__":
-    app = create_app()
+    app = create_app(app=app)
     app.run(debug=True)
