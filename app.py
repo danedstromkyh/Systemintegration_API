@@ -1,5 +1,6 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 from flask_mqtt import Mqtt
+import datetime
 
 app = Flask(__name__)
 
@@ -36,18 +37,42 @@ def handle_mqtt_message(client, userdata, message):
     # w = Skriv över hela innehållet varje gång filen öppnas
     # r = Får bara läsa från filer
     # a = Append, lägg till ny text på slutet av filen
-    with open(file='storage.txt', mode='w', encoding='utf-8') as file:
-        file.write(m_payload)
+
+    # Time stamp, sensor data: value
+    date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    with open(file='storage.txt', mode='a', encoding='utf-8') as file:
+        file.write(m_payload + '\t' + date + '\n')
+
+
 
 
 def create_app(app):
 
     # Gör en route som skriver ut ett sparat meddelande
-    @app.route('/get/')
-    def get_message():
+    @app.route('api/v1/latest_data/')
+    def get_latest_data():
+        return get_file_data()
+
+    @app.route('api/v1/all_data/')
+    def get_all_data():
+        return get_file_data(False)
+
+    #@app.route('/home_page')
+    #def index():
+    #    json_data = get_latest_data()
+    #    return render_template(data=json_data)
+
+
+    def get_file_data(last_data=True):
         with open(file='storage.txt', mode='r', encoding='utf-8') as file:
-            data = file.read()
-        return jsonify({'text': data}), 200
+            if last_data:
+                data = file.readlines()[-1]
+            else:
+
+                list_data = []
+                for data in file.readlines():
+                    list_data.append({'data': data})
+        return jsonify({'all_data': list_data}), 200
 
     return app
 
