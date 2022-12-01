@@ -4,7 +4,6 @@ import datetime
 
 app = Flask(__name__)
 
-
 # Ställ in MQTT-klienten
 app.config['MQTT_BROKER_URL'] = 'broker.hivemq.com'
 app.config['MQTT_BROKER_PORT'] = 1883
@@ -17,6 +16,7 @@ topic = '/kyh/example_mqtt_flask'
 
 mqtt_client = Mqtt(app)
 
+
 # Hantera MQTT-connect
 @mqtt_client.on_connect()
 def handle_connect(client, userdata, flags, rc):
@@ -25,6 +25,7 @@ def handle_connect(client, userdata, flags, rc):
         mqtt_client.subscribe(topic)
     else:
         print('Something went wrong:', rc)
+
 
 # On-message-funktion
 @mqtt_client.on_message()
@@ -44,24 +45,27 @@ def handle_mqtt_message(client, userdata, message):
         file.write(m_payload + '\t' + date + '\n')
 
 
-
-
 def create_app(app):
-
     # Gör en route som skriver ut ett sparat meddelande
-    @app.route('api/v1/latest_data/')
+    @app.route('/api/v1/latest_data/')
     def get_latest_data():
         return get_file_data()
 
-    @app.route('api/v1/all_data/')
+    @app.route('/api/v1/all_data/')
     def get_all_data():
         return get_file_data(False)
 
-    #@app.route('/home_page')
-    #def index():
-    #    json_data = get_latest_data()
-    #    return render_template(data=json_data)
-
+    @app.route('/data/latest')
+    def view_latest_data():
+        json_data = get_latest_data()
+        data = json_data[0].json['all_data']
+        return render_template('index.html', data=data)
+    @app.route('/data/logs')
+    def view_data_log():
+        json_data = get_all_data()
+        list_data = json_data[0].json['all_data']
+        list_data = [data['data'] for data in list_data]
+        return render_template('log.html', list_data=list_data)
 
     def get_file_data(last_data=True):
         with open(file='storage.txt', mode='r', encoding='utf-8') as file:
@@ -72,7 +76,8 @@ def create_app(app):
                 list_data = []
                 for data in file.readlines():
                     list_data.append({'data': data})
-        return jsonify({'all_data': list_data}), 200
+                data = list_data
+        return jsonify({'all_data': data}), 200
 
     return app
 
