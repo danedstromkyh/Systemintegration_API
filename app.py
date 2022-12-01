@@ -1,14 +1,7 @@
-import os
-from urllib.parse import quote_plus
-from flask_mongoengine import MongoEngine
-from flask_pymongo import pymongo
 from flask import Flask, jsonify
-from dotenv import load_dotenv
 from flask_mqtt import Mqtt
 
 app = Flask(__name__)
-#db = MongoEngine()
-
 
 
 # Ställ in MQTT-klienten
@@ -46,38 +39,8 @@ def handle_mqtt_message(client, userdata, message):
     with open(file='storage.txt', mode='w', encoding='utf-8') as file:
         file.write(m_payload)
 
+
 def create_app(app):
-    """
-    Initializes our API
-    :return: app object
-    """
-    load_dotenv()
-    app.secret_key = os.environ.get('APP_SECRET_KEY')
-    #mongo_uri = "mongodb+srv://edvin:" + urllib.parse.quote("Xih*hLy@gWqc2&9dmCCDTbdBumJdcWz") + "@kyhdb.tmgj0.mongodb.net/?retryWrites=true&w=majority"
-    #app.config['MONGODB_SETTINGS'] = {
-    #    'host': mongo_uri }
-    #db.init_app(app)
-
-    username = quote_plus('edvin')
-
-    password = quote_plus('Xih*hLy@gWqc2&9dmCCDTbdBumJdcWz')
-
-
-    uri = 'mongodb+srv://edvin:' + password + '@kyhdb.tmgj0.mongodb.net/?retryWrites=true&w=majority'
-
-    client = pymongo.MongoClient(uri)
-
-    #CONNECTION_STRING = "mongodb+srv://edvin:" + urllib.parse.quote("Xih*hLy@gWqc2&9dmCCDTbdBumJdcWz") + "@kyhdb.tmgj0.mongodb.net/?retryWrites=true&w=majority"
-    #client = pymongo.MongoClient(CONNECTION_STRING)
-    db = client.get_database('flask_mongodb_atlas')
-    user_collection = pymongo.collection.Collection(db, 'user_collection')
-
-
-
-    @app.route("/test/")
-    def test():
-        db.db.collection.insert_one({"name": "John"})
-        return "Connected to the data base!"
 
     # Gör en route som skriver ut ett sparat meddelande
     @app.route('/get/')
