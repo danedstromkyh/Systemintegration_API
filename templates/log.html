@@ -5,11 +5,17 @@
     <title>Logs of latest activity</title>
 </head>
 <body>
-
-    {% for data in list_data %}
+<img src="{{ url_for('plot_data') }}">
+    {% for data in payload_data %}
         <ol>
         <li>{{ data }}</li>
         </ol>
     {% endfor %}
+    {% for data in date_data %}
+        <ol>
+        <li>{{ data }}</li>
+        </ol>
+    {% endfor %}
+
 </body>
 </html>

@@ -1,8 +1,14 @@
-from flask import Flask, jsonify, render_template
+import io
+from flask import Flask, jsonify, render_template, send_file
 from flask_mqtt import Mqtt
 import datetime
+import sqlite3
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
+DATABASE_FILE = 'data.db'
 app = Flask(__name__)
+fig, ax = plt.subplots()
 
 # Ställ in MQTT-klienten
 app.config['MQTT_BROKER_URL'] = 'broker.hivemq.com'
@@ -12,10 +18,9 @@ app.config['MQTT_PASSWORD'] = ''
 app.config['MQTT_KEEPALIVE'] = 5  # Sekunder
 app.config['MQTT_TLS_ENABLED'] = False
 
-topic = '/kyh/example_mqtt_flask'
+topic = '/kyh/test_mqtt'
 
 mqtt_client = Mqtt(app)
-
 
 # Hantera MQTT-connect
 @mqtt_client.on_connect()
@@ -29,57 +34,103 @@ def handle_connect(client, userdata, flags, rc):
 
 # On-message-funktion
 @mqtt_client.on_message()
-def handle_mqtt_message(client, userdata, message):
+def handle_mqtt_message(client, user_data, message):
     m_topic = message.topic
     m_payload = message.payload.decode('utf-8')
     print(f'Received message on topic: {m_topic}: {m_payload}')
 
-    # Spara m_payload till en textfil
-    # w = Skriv över hela innehållet varje gång filen öppnas
-    # r = Får bara läsa från filer
-    # a = Append, lägg till ny text på slutet av filen
-
     # Time stamp, sensor data: value
     date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    with open(file='storage.txt', mode='a', encoding='utf-8') as file:
-        file.write(m_payload + '\t' + date + '\n')
+
+    db_conn = user_data['db_conn']
+    sql = 'INSERT INTO mqtt_data (payload, created_at) VALUES (?, ?)'
+    cursor = db_conn.cursor()
+    cursor.execute(sql, (m_payload, date))
+    db_conn.commit()
+    cursor.close()
 
 
 def create_app(app):
+    db_conn = sqlite3.connect(DATABASE_FILE, check_same_thread=False)
+    sql = """
+    CREATE TABLE IF NOT EXISTS mqtt_data (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        payload INT NOT NULL,
+        created_at TEXT NOT NULL
+    )
+    """
+
+    cursor = db_conn.cursor()
+    cursor.execute(sql)
+    cursor.close()
+
+    mqtt_client.client.user_data_set({'db_conn': db_conn})
+
     # Gör en route som skriver ut ett sparat meddelande
     @app.route('/api/v1/latest_data/')
     def get_latest_data():
-        return get_file_data()
+        return get_all_from_db(db_conn)
 
     @app.route('/api/v1/all_data/')
     def get_all_data():
-        return get_file_data(False)
+        return get_all_from_db(db_conn, False)
 
     @app.route('/data/latest')
     def view_latest_data():
         json_data = get_latest_data()
         data = json_data[0].json['all_data']
         return render_template('index.html', data=data)
+
     @app.route('/data/logs')
     def view_data_log():
-        json_data = get_all_data()
-        list_data = json_data[0].json['all_data']
-        list_data = [data['data'] for data in list_data]
-        return render_template('log.html', list_data=list_data)
+        payload_list, date_list = get_all_from_db(db_conn, False, True)
+        return render_template('log.html', payload_data=payload_list, date_data=date_list)
 
-    def get_file_data(last_data=True):
-        with open(file='storage.txt', mode='r', encoding='utf-8') as file:
-            if last_data:
-                data = file.readlines()[-1]
-            else:
+    @app.route('/plot')
+    def plot_data():
+        payload_list, date_list = get_all_from_db(db_conn, False, True)
 
-                list_data = []
-                for data in file.readlines():
-                    list_data.append({'data': data})
-                data = list_data
-        return jsonify({'all_data': data}), 200
+        plt.plot(date_list, payload_list)
+        plt.xlabel('Date')
+        plt.xticks(date_list)
+        plt.xticks(rotation=90)
+        plt.ylabel("Temp")
+
+        canvas = FigureCanvas(fig)
+        img = io.BytesIO()
+        fig.savefig(img)
+        plt.show()
+        img.seek(0)
+        return send_file(img, mimetype='img/png')
 
     return app
+
+
+def get_all_from_db(db_conn,last_data=True,graph=True):
+    cursor = db_conn.cursor()
+    cursor.execute("SELECT * FROM mqtt_data")
+    rows = cursor.fetchall()
+    if last_data:
+        cursor.execute("SELECT * FROM mqtt_data ORDER BY id DESC LIMIT 1")
+        data = cursor.fetchone()
+    else:
+        list_data = []
+        for data in rows:
+            list_data.append({'data': data})
+        data = list_data
+        if graph:
+            payload_list = []
+            db_conn.row_factory = lambda payload_data, row: row[0]
+            payload_row = db_conn.execute('SELECT payload FROM mqtt_data').fetchall()
+            for payload in payload_row:
+                payload_list.append(payload)
+            date_list = []
+            db_conn.row_factory = lambda date_data, row: row[0]
+            date_row = db_conn.execute('SELECT created_at FROM mqtt_data').fetchall()
+            for date in date_row:
+                date_list.append(date)
+            return payload_list, date_list
+    return jsonify({'all_data': data}), 200
 
 
 if __name__ == "__main__":
