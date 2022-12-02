@@ -22,6 +22,7 @@ topic = '/kyh/test_mqtt'
 
 mqtt_client = Mqtt(app)
 
+
 # Hantera MQTT-connect
 @mqtt_client.on_connect()
 def handle_connect(client, userdata, flags, rc):
@@ -106,7 +107,7 @@ def create_app(app):
     return app
 
 
-def get_all_from_db(db_conn,last_data=True,graph=True):
+def get_all_from_db(db_conn, last_data=True, graph=True):
     cursor = db_conn.cursor()
     cursor.execute("SELECT * FROM mqtt_data")
     rows = cursor.fetchall()
