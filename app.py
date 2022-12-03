@@ -18,7 +18,7 @@ app.config['MQTT_PASSWORD'] = ''
 app.config['MQTT_KEEPALIVE'] = 5  # Sekunder
 app.config['MQTT_TLS_ENABLED'] = False
 
-topic = '/kyh/test_mqtt'
+topic = '/kyh/temp_sensor'
 
 mqtt_client = Mqtt(app)
 
@@ -70,11 +70,11 @@ def create_app(app):
     # Gör en route som skriver ut ett sparat meddelande
     @app.route('/api/v1/latest_data/')
     def get_latest_data():
-        return get_all_from_db(db_conn)
+        return get_all_from_db(graph=False)
 
     @app.route('/api/v1/all_data/')
     def get_all_data():
-        return get_all_from_db(db_conn, False)
+        return get_all_from_db(last_data=False)
 
     @app.route('/data/latest')
     def view_latest_data():
@@ -84,12 +84,12 @@ def create_app(app):
 
     @app.route('/data/logs')
     def view_data_log():
-        payload_list, date_list = get_all_from_db(db_conn, False, True)
+        payload_list, date_list = get_all_from_db(last_data=False, graph=True)
         return render_template('log.html', payload_data=payload_list, date_data=date_list)
 
     @app.route('/plot')
     def plot_data():
-        payload_list, date_list = get_all_from_db(db_conn, False, True)
+        payload_list, date_list = get_all_from_db(last_data=False, graph=True)
 
         plt.plot(date_list, payload_list)
         plt.xlabel('Date')
@@ -107,7 +107,9 @@ def create_app(app):
     return app
 
 
-def get_all_from_db(db_conn, last_data=True, graph=True):
+def get_all_from_db(last_data=True, graph=True):
+    global DATABASE_FILE
+    db_conn = sqlite3.connect(DATABASE_FILE, check_same_thread=False)
     cursor = db_conn.cursor()
     cursor.execute("SELECT * FROM mqtt_data")
     rows = cursor.fetchall()
@@ -130,7 +132,9 @@ def get_all_from_db(db_conn, last_data=True, graph=True):
             date_row = db_conn.execute('SELECT created_at FROM mqtt_data').fetchall()
             for date in date_row:
                 date_list.append(date)
+            cursor.close()
             return payload_list, date_list
+    cursor.close()
     return jsonify({'all_data': data}), 200
 
 
