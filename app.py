@@ -1,10 +1,11 @@
 import io
-from flask import Flask, jsonify, render_template, send_file
+from flask import Flask, jsonify, render_template, send_file, request
 from flask_mqtt import Mqtt
 import datetime
 import sqlite3
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+
 
 DATABASE_FILE = 'data.db'
 app = Flask(__name__)
@@ -51,6 +52,15 @@ def handle_mqtt_message(client, user_data, message):
     cursor.close()
 
 
+def is_request_gateway():
+    try:
+        data = request
+        sender = data.environ['HTTP_WHO_REQUEST']
+        if sender == 'apisix':
+            return True
+    except KeyError:
+        return False
+
 def create_app(app):
     db_conn = sqlite3.connect(DATABASE_FILE, check_same_thread=False)
     sql = """
@@ -70,11 +80,17 @@ def create_app(app):
     # Gör en route som skriver ut ett sparat meddelande
     @app.route('/api/v1/latest_data/')
     def get_latest_data():
-        return get_all_from_db(graph=False)
+        if is_request_gateway():
+            return get_all_from_db(graph=False)
+        else:
+            return jsonify({'status': 'error, forbidden access'}), 403
 
     @app.route('/api/v1/all_data/')
     def get_all_data():
-        return get_all_from_db(last_data=False)
+        if is_request_gateway():
+            return get_all_from_db(last_data=False, graph=False)
+        else:
+            return jsonify({'status': 'error, forbidden access'}), 403
 
     @app.route('/data/latest')
     def view_latest_data():
