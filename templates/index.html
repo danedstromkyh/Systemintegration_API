@@ -11,5 +11,15 @@
 
 
 </body>
-<script src="/static/javascript.js"></script>
+<script>
+function reloadPage() {
+setInterval(reloader, 3000)
+}
+
+function reloader() {
+    window.location.reload(true);
+}
+reloadPage()
+
+</script>
 </html>

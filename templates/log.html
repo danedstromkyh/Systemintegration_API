@@ -5,7 +5,7 @@
     <title>Logs of latest activity</title>
 </head>
 <body>
-<img src="{{ url_for('plot_data') }}">
+  <img id="picture" src="data:image/jpeg;base64,{{ img_data }}">
     {% for data in payload_data %}
         <ol>
         <li>{{ data }}</li>

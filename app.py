@@ -1,10 +1,15 @@
+import base64
 import io
-from flask import Flask, jsonify, render_template, send_file, request
+
+from PIL import Image
+from flask import Flask, jsonify, render_template, send_file, request, json
 from flask_mqtt import Mqtt
 import datetime
 import sqlite3
 import matplotlib.pyplot as plt
+import matplotlib.dates as md
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+
 
 
 DATABASE_FILE = 'data.db'
@@ -100,25 +105,36 @@ def create_app(app):
 
     @app.route('/data/logs')
     def view_data_log():
+        img_data = plot_data()
         payload_list, date_list = get_all_from_db(last_data=False, graph=True)
-        return render_template('log.html', payload_data=payload_list, date_data=date_list)
+        return render_template('log.html', payload_data=payload_list, date_data=date_list, img_data=img_data)
 
     @app.route('/plot')
     def plot_data():
+        plt.clf()
         payload_list, date_list = get_all_from_db(last_data=False, graph=True)
+        payload_list = [json.loads(data)['temp'] for data in payload_list]
+        date_list = [date[11:] for date in date_list]
 
         plt.plot(date_list, payload_list)
         plt.xlabel('Date')
+        plt.subplots_adjust(bottom=0.3)
         plt.xticks(date_list)
-        plt.xticks(rotation=90)
+        plt.xticks(rotation=0)
         plt.ylabel("Temp")
 
         canvas = FigureCanvas(fig)
-        img = io.BytesIO()
-        fig.savefig(img)
+        data = io.BytesIO()
+        fig.savefig(data)
         plt.show()
-        img.seek(0)
-        return send_file(img, mimetype='img/png')
+        data.seek(0)
+        #im = Image.open("log_image.jpeg")
+        Image.Image.save(data.getvalue(), "JPEG")
+
+        encoded_img_data = base64.b64encode(data.getvalue())
+
+        #return send_file(data, mimetype='data/png')
+        return encoded_img_data
 
     return app
 
@@ -156,4 +172,4 @@ def get_all_from_db(last_data=True, graph=True):
 
 if __name__ == "__main__":
     app = create_app(app=app)
-    app.run(debug=True)
+    app.run()
