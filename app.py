@@ -20,7 +20,7 @@ load_dotenv()
 #DATABASE_FILE = 'data.db'
 DATABASE_FILE = os.getenv('DB_PATH')
 app = Flask(__name__)
-fig, ax = plt.subplots()
+
 
 # Ställ in MQTT-klienten
 app.config['MQTT_BROKER_URL'] = 'broker.hivemq.com'
@@ -31,7 +31,6 @@ app.config['MQTT_KEEPALIVE'] = 5  # Sekunder
 app.config['MQTT_TLS_ENABLED'] = False
 
 topic = '/kyh/temp_sensor'
-
 mqtt_client = Mqtt(app)
 
 
@@ -117,6 +116,7 @@ def create_app(app):
 
     @app.route('/api/v1/all_data/')
     @is_request_gateway
+    @valid_api_key
     def get_all_data():
         return get_all_from_db(last_data=False, graph=False)
 
@@ -138,6 +138,7 @@ def create_app(app):
     @app.route('/plot/')
     def plot_data():
         plt.clf()
+        fig, ax = plt.subplots()
         payload_list, date_list = get_all_from_db(last_data=False, graph=True)
         payload_list = [json.loads(data)['temp'] for data in payload_list]
         date_list = [date[11:] for date in date_list]
