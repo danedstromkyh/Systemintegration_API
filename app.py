@@ -108,7 +108,7 @@ def create_app(app):
     def view_data_log():
         payload_list, date_list = get_all_from_db(last_data=False, graph=True)
         payload_list = [json.loads(data)['temp'] for data in payload_list]
-        return render_template('log.html', payload_data=payload_list, date_data=date_list)
+        return render_template('log.html', payload_data=sorted(payload_list, reverse=True), date_data=sorted(date_list, reverse=True))
 
     @app.route('/')
     def view_latest_data():
@@ -138,7 +138,6 @@ def create_app(app):
         data.seek(0)
 
         return send_file(data, mimetype='data/png')
-
     return app
 
 

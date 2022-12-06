@@ -4,21 +4,16 @@
     <meta charset="UTF-8">
     <title>Logs of latest activity</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}"/>
-
 </head>
-<style>
 
-
-</style>
 <body>
-
   <form action="{{ url_for('view_latest_data') }}">
     <input class=button type="submit" value="Home" />
   </form>
 
   <img src="{{ url_for('plot_data') }}">
 
-  <table id="customers">
+  <table id="temptable">
     <tr>
         <th>Data</th>
         <th>Time</th>
@@ -28,12 +23,10 @@
         {% set time = date_data[loop.index - 1] %}
      <tr>
            <td> {{ data }} C° </td>
-           <td>  {{ time }} </td>
+           <td> {{ time }} </td>
     </tr>
-{% endfor %}
+      {% endfor %}
   </table>
-
-
-
 </body>
+
 </html>
