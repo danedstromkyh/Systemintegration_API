@@ -7,3 +7,5 @@ Werkzeug==2.2.2
 
 PyJWT~=2.6.0
 matplotlib~=3.6.2
+pillow~=9.3.0
+python-dotenv~=0.21.0

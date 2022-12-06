@@ -1,5 +1,6 @@
 import base64
 import io
+import os
 
 from PIL import Image
 from flask import Flask, jsonify, render_template, send_file, request, json
@@ -9,10 +10,12 @@ import sqlite3
 import matplotlib.pyplot as plt
 import matplotlib.dates as md
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from dotenv import load_dotenv
 
+load_dotenv()
 
-
-DATABASE_FILE = 'data.db'
+#DATABASE_FILE = 'data.db'
+DATABASE_FILE = os.getenv('DB_PATH')
 app = Flask(__name__)
 fig, ax = plt.subplots()
 
@@ -65,6 +68,7 @@ def is_request_gateway():
             return True
     except KeyError:
         return False
+
 
 def create_app(app):
     db_conn = sqlite3.connect(DATABASE_FILE, check_same_thread=False)
