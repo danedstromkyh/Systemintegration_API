@@ -105,9 +105,8 @@ def create_app(app):
 
     @app.route('/data/logs')
     def view_data_log():
-        img_data = plot_data()
         payload_list, date_list = get_all_from_db(last_data=False, graph=True)
-        return render_template('log.html', payload_data=payload_list, date_data=date_list, img_data=img_data)
+        return render_template('log.html', payload_data=payload_list, date_data=date_list)
 
     @app.route('/plot')
     def plot_data():
@@ -117,10 +116,10 @@ def create_app(app):
         date_list = [date[11:] for date in date_list]
 
         plt.plot(date_list, payload_list)
-        plt.xlabel('Date')
+        plt.xlabel('Time')
         plt.subplots_adjust(bottom=0.3)
         plt.xticks(date_list)
-        plt.xticks(rotation=0)
+        plt.xticks(rotation=90)
         plt.ylabel("Temp")
 
         canvas = FigureCanvas(fig)
@@ -128,13 +127,8 @@ def create_app(app):
         fig.savefig(data)
         plt.show()
         data.seek(0)
-        #im = Image.open("log_image.jpeg")
-        Image.Image.save(data.getvalue(), "JPEG")
 
-        encoded_img_data = base64.b64encode(data.getvalue())
-
-        #return send_file(data, mimetype='data/png')
-        return encoded_img_data
+        return send_file(data, mimetype='data/png')
 
     return app
 
