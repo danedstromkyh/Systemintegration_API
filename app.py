@@ -1,7 +1,7 @@
 import base64
 import io
 import os
-
+from functools import wraps
 from PIL import Image
 from flask import Flask, jsonify, render_template, send_file, request, json
 from flask_mqtt import Mqtt
@@ -14,7 +14,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_FILE = 'data.db'
+
+
+
+#DATABASE_FILE = 'data.db'
+DATABASE_FILE = os.getenv('DB_PATH')
 app = Flask(__name__)
 fig, ax = plt.subplots()
 
@@ -60,14 +64,31 @@ def handle_mqtt_message(client, user_data, message):
 
 
 def is_request_gateway(func):
-    def wrapper():
+    @wraps(func)
+    def wrapper(*args, **kwargs):
         try:
             data = request
             sender = data.environ['HTTP_WHO_REQUEST']
             if sender:
-                return func()
+                return func(*args, **kwargs)
         except KeyError:
-            return jsonify({'status': 'error, forbidden access'}), 403
+            return jsonify({'error': 'forbidden access'}), 403
+    return wrapper
+
+def get_valid_keys():
+    with open('api_keys', mode='r', encoding='utf-8') as file:
+        list_keys = [key.rstrip() for key in file.readlines()]
+        return list_keys
+def valid_api_key(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        data = request
+        system_keys = get_valid_keys()
+        user_key = data.headers.environ['HTTP_X_API_KEY']
+        for key in system_keys:
+            if key == user_key:
+                return func(*args, **kwargs)
+        return jsonify({'error': 'invalid api key'}), 401
     return wrapper
 
 def create_app(app):
@@ -89,33 +110,32 @@ def create_app(app):
     # Gör en route som skriver ut ett sparat meddelande
     @app.route('/api/v1/latest_data/')
     @is_request_gateway
+    @valid_api_key
     def get_latest_data():
         return get_all_from_db(graph=False)
-        # else:
-        #     return jsonify({'status': 'error, forbidden access'}), 403
+
 
     @app.route('/api/v1/all_data/')
     @is_request_gateway
-
     def get_all_data():
-        print()
-        if is_request_gateway():
-            return get_all_from_db(last_data=False, graph=False)
-        else:
-            return jsonify({'status': 'error, forbidden access'}), 403
+        return get_all_from_db(last_data=False, graph=False)
 
-    @app.route('/data/latest')
+    @app.route('/data/logs/')
+    @is_request_gateway
+    def view_data_log():
+        payload_list, date_list = get_all_from_db(last_data=False, graph=True)
+        payload_list = [json.loads(data)['temp'] for data in payload_list]
+        return render_template('log.html', payload_data=sorted(payload_list, reverse=True), date_data=sorted(date_list, reverse=True))
+
+    @app.route('/')
+    @is_request_gateway
     def view_latest_data():
         json_data = get_latest_data()
         data = json_data[0].json['all_data']
-        return render_template('index.html', data=data)
+        temp = json.loads(data[1])['temp']
+        return render_template('index.html', data=data, temp=temp)
 
-    @app.route('/data/logs')
-    def view_data_log():
-        payload_list, date_list = get_all_from_db(last_data=False, graph=True)
-        return render_template('log.html', payload_data=payload_list, date_data=date_list)
-
-    @app.route('/plot')
+    @app.route('/plot/')
     def plot_data():
         plt.clf()
         payload_list, date_list = get_all_from_db(last_data=False, graph=True)
@@ -127,7 +147,7 @@ def create_app(app):
         plt.subplots_adjust(bottom=0.3)
         plt.xticks(date_list)
         plt.xticks(rotation=90)
-        plt.ylabel("Temp")
+        plt.ylabel("Temp C°")
 
         canvas = FigureCanvas(fig)
         data = io.BytesIO()
@@ -136,7 +156,6 @@ def create_app(app):
         data.seek(0)
 
         return send_file(data, mimetype='data/png')
-
     return app
 
 

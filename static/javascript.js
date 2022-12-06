@@ -1,6 +1,5 @@
 function reloadPage() {
     setInterval(reloader, 3000)
-
 }
 
 function reloader() {
