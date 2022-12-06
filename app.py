@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-#DATABASE_FILE = 'data.db'
+# DATABASE_FILE = 'data.db'
 DATABASE_FILE = os.getenv('DB_PATH')
 app = Flask(__name__)
 fig, ax = plt.subplots()
@@ -61,6 +61,8 @@ def handle_mqtt_message(client, user_data, message):
 
 
 def is_request_gateway():
+    return True
+    """
     try:
         data = request
         sender = data.environ['HTTP_WHO_REQUEST']
@@ -68,6 +70,7 @@ def is_request_gateway():
             return True
     except KeyError:
         return False
+    """
 
 
 def create_app(app):
@@ -101,18 +104,20 @@ def create_app(app):
         else:
             return jsonify({'status': 'error, forbidden access'}), 403
 
-    @app.route('/data/latest')
+    @app.route('/data/logs/')
+    def view_data_log():
+        payload_list, date_list = get_all_from_db(last_data=False, graph=True)
+        payload_list = [json.loads(data)['temp'] for data in payload_list]
+        return render_template('log.html', payload_data=payload_list, date_data=date_list)
+
+    @app.route('/')
     def view_latest_data():
         json_data = get_latest_data()
         data = json_data[0].json['all_data']
-        return render_template('index.html', data=data)
+        temp = json.loads(data[1])['temp']
+        return render_template('index.html', data=data, temp=temp)
 
-    @app.route('/data/logs')
-    def view_data_log():
-        payload_list, date_list = get_all_from_db(last_data=False, graph=True)
-        return render_template('log.html', payload_data=payload_list, date_data=date_list)
-
-    @app.route('/plot')
+    @app.route('/plot/')
     def plot_data():
         plt.clf()
         payload_list, date_list = get_all_from_db(last_data=False, graph=True)
@@ -124,7 +129,7 @@ def create_app(app):
         plt.subplots_adjust(bottom=0.3)
         plt.xticks(date_list)
         plt.xticks(rotation=90)
-        plt.ylabel("Temp")
+        plt.ylabel("Temp C°")
 
         canvas = FigureCanvas(fig)
         data = io.BytesIO()
