@@ -14,8 +14,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-#DATABASE_FILE = 'data.db'
-DATABASE_FILE = os.getenv('DB_PATH')
+DATABASE_FILE = 'data.db'
 app = Flask(__name__)
 fig, ax = plt.subplots()
 
@@ -60,15 +59,16 @@ def handle_mqtt_message(client, user_data, message):
     cursor.close()
 
 
-def is_request_gateway():
-    try:
-        data = request
-        sender = data.environ['HTTP_WHO_REQUEST']
-        if sender == 'apisix':
-            return True
-    except KeyError:
-        return False
-
+def is_request_gateway(func):
+    def wrapper():
+        try:
+            data = request
+            sender = data.environ['HTTP_WHO_REQUEST']
+            if sender:
+                return func()
+        except KeyError:
+            return jsonify({'status': 'error, forbidden access'}), 403
+    return wrapper
 
 def create_app(app):
     db_conn = sqlite3.connect(DATABASE_FILE, check_same_thread=False)
@@ -88,14 +88,17 @@ def create_app(app):
 
     # Gör en route som skriver ut ett sparat meddelande
     @app.route('/api/v1/latest_data/')
+    @is_request_gateway
     def get_latest_data():
-        if is_request_gateway():
-            return get_all_from_db(graph=False)
-        else:
-            return jsonify({'status': 'error, forbidden access'}), 403
+        return get_all_from_db(graph=False)
+        # else:
+        #     return jsonify({'status': 'error, forbidden access'}), 403
 
     @app.route('/api/v1/all_data/')
+    @is_request_gateway
+
     def get_all_data():
+        print()
         if is_request_gateway():
             return get_all_from_db(last_data=False, graph=False)
         else:
