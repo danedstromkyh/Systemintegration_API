@@ -1,5 +1,6 @@
 import base64
 import io
+import os
 
 from PIL import Image
 from flask import Flask, jsonify, render_template, send_file, request, json
@@ -9,10 +10,12 @@ import sqlite3
 import matplotlib.pyplot as plt
 import matplotlib.dates as md
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from dotenv import load_dotenv
 
+load_dotenv()
 
-
-DATABASE_FILE = 'data.db'
+#DATABASE_FILE = 'data.db'
+DATABASE_FILE = os.getenv('DB_PATH')
 app = Flask(__name__)
 fig, ax = plt.subplots()
 
@@ -66,6 +69,7 @@ def is_request_gateway():
     except KeyError:
         return False
 
+
 def create_app(app):
     db_conn = sqlite3.connect(DATABASE_FILE, check_same_thread=False)
     sql = """
@@ -105,6 +109,11 @@ def create_app(app):
 
     @app.route('/data/logs')
     def view_data_log():
+        for id_, name, filename in db_conn.execute('PRAGMA database_list'):
+            if name == 'main' and filename is not None:
+                path = filename
+                print('actualpath: ' + path)
+                break
         img_data = plot_data()
         payload_list, date_list = get_all_from_db(last_data=False, graph=True)
         return render_template('log.html', payload_data=payload_list, date_data=date_list, img_data=img_data)
@@ -128,12 +137,12 @@ def create_app(app):
         fig.savefig(data)
         plt.show()
         data.seek(0)
-        #im = Image.open("log_image.jpeg")
+        # im = Image.open("log_image.jpeg")
         Image.Image.save(data.getvalue(), "JPEG")
 
         encoded_img_data = base64.b64encode(data.getvalue())
 
-        #return send_file(data, mimetype='data/png')
+        # return send_file(data, mimetype='data/png')
         return encoded_img_data
 
     return app
