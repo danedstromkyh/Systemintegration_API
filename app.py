@@ -92,12 +92,23 @@ def get_valid_keys():
         return list_keys
 
 
+def valid_user(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            if session["user"]:
+                return func(*args, **kwargs)
+        except KeyError:
+            return jsonify({'error': 'invalid or no token'}), 401
+    return wrapper
+
+
 def valid_api_key(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         data = request
         system_keys = get_valid_keys()
-        user_key = data.headers.environ['HTTP_X_API_KEY']
+        user_key = data.headers.environ['x-api-key']
         for key in system_keys:
             if key == user_key:
                 return func(*args, **kwargs)
@@ -167,6 +178,7 @@ def create_app(app):
         return get_all_from_db(last_data=False, graph=False)
 
     @app.route('/data/logs/')
+    @valid_user
     @is_request_gateway
     def view_data_log():
         payload_list, date_list = get_all_from_db(last_data=False, graph=True)
@@ -174,9 +186,10 @@ def create_app(app):
         return render_template('log.html', payload_data=sorted(payload_list, reverse=True), date_data=sorted(date_list, reverse=True))
 
     @app.route('/')
+    @valid_user
     @is_request_gateway
     def view_latest_data():
-        json_data = get_latest_data()
+        json_data = get_all_from_db(graph=False)
         data = json_data[0].json['all_data']
         temp = json.loads(data[1])['temp']
         return render_template('index.html', data=data, temp=temp)
