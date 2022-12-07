@@ -2,25 +2,24 @@ import base64
 import io
 import os
 from functools import wraps
-from PIL import Image
-from flask import Flask, jsonify, render_template, send_file, request, json
+from flask import Flask, jsonify, send_file, request, json, redirect, render_template, session, url_for
 from flask_mqtt import Mqtt
 import datetime
 import sqlite3
 import matplotlib.pyplot as plt
-import matplotlib.dates as md
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from dotenv import load_dotenv
+from urllib.parse import quote_plus, urlencode
+from authlib.integrations.flask_client import OAuth
+from dotenv import find_dotenv, load_dotenv
 
-load_dotenv()
+ENV_FILE = find_dotenv()
+if ENV_FILE:
+    load_dotenv(ENV_FILE)
 
-
-
-
-#DATABASE_FILE = 'data.db'
+# DATABASE_FILE = 'data.db'
 DATABASE_FILE = os.getenv('DB_PATH')
 app = Flask(__name__)
-
+app.secret_key = os.environ.get("APP_SECRET_KEY")
 
 # Ställ in MQTT-klienten
 app.config['MQTT_BROKER_URL'] = 'broker.hivemq.com'
@@ -32,6 +31,18 @@ app.config['MQTT_TLS_ENABLED'] = False
 
 topic = '/kyh/temp_sensor'
 mqtt_client = Mqtt(app)
+
+oauth = OAuth(app)
+
+oauth.register(
+    "auth0",
+    client_id=os.environ.get("AUTH0_CLIENT_ID"),
+    client_secret=os.environ.get("AUTH0_CLIENT_SECRET"),
+    client_kwargs={
+        "scope": "openid profile email",
+    },
+    server_metadata_url=f'https://{os.environ.get("AUTH0_DOMAIN")}/.well-known/openid-configuration'
+)
 
 
 # Hantera MQTT-connect
@@ -74,10 +85,13 @@ def is_request_gateway(func):
             return jsonify({'error': 'forbidden access'}), 403
     return wrapper
 
+
 def get_valid_keys():
     with open('api_keys', mode='r', encoding='utf-8') as file:
         list_keys = [key.rstrip() for key in file.readlines()]
         return list_keys
+
+
 def valid_api_key(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -89,6 +103,7 @@ def valid_api_key(func):
                 return func(*args, **kwargs)
         return jsonify({'error': 'invalid api key'}), 401
     return wrapper
+
 
 def create_app(app):
     db_conn = sqlite3.connect(DATABASE_FILE, check_same_thread=False)
@@ -106,13 +121,44 @@ def create_app(app):
 
     mqtt_client.client.user_data_set({'db_conn': db_conn})
 
+    @app.route("/login")
+    def login():
+        return oauth.auth0.authorize_redirect(
+            redirect_uri=url_for("callback", _external=True)
+        )
+
+    @app.route("/callback", methods=["GET", "POST"])
+    def callback():
+        token = oauth.auth0.authorize_access_token()
+        session["user"] = token
+        return redirect("/")
+
+    @app.route("/logout")
+    def logout():
+        session.clear()
+        return redirect(
+            "https://" + os.environ.get("AUTH0_DOMAIN")
+            + "/v2/logout?"
+            + urlencode(
+                {
+                    "returnTo": url_for("home", _external=True),
+                    "client_id": os.environ.get("AUTH0_CLIENT_ID"),
+                },
+                quote_via=quote_plus,
+            )
+        )
+
+    @app.route("/home")
+    def home():
+        return render_template("home.html", session=session.get('user'),
+                               pretty=json.dumps(session.get('user'), indent=4))
+
     # Gör en route som skriver ut ett sparat meddelande
     @app.route('/api/v1/latest_data/')
     @is_request_gateway
     @valid_api_key
     def get_latest_data():
         return get_all_from_db(graph=False)
-
 
     @app.route('/api/v1/all_data/')
     @is_request_gateway
@@ -193,4 +239,4 @@ def get_all_from_db(last_data=True, graph=True):
 
 if __name__ == "__main__":
     app = create_app(app=app)
-    app.run()
+    app.run(port=os.environ.get("PORT", 3000))
