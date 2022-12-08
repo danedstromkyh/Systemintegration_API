@@ -166,29 +166,30 @@ def create_app(app):
     def home():
         try:
             if session["user"]:
-                json_data = get_all_from_db(graph=False)
-                data = json_data[0].json['all_data']
-                temp = json.loads(data[1])['temp']
-                return render_template('latest.html', data=data, temp=temp)
-        except:
+                return view_latest_data()
+                # json_data = get_all_from_db(graph=False)
+                # data = json_data[0].json['all_data']
+                # temp = json.loads(data[1])['temp']
+                # return render_template('latest.html', data=data, temp=temp)
+        except KeyError:
             print('test')
         return render_template("index.html", session=session.get('user'),
                                pretty=json.dumps(session.get('user'), indent=4))
 
     # Gör en route som skriver ut ett sparat meddelande
-    @app.route('/api/v1/latest_data/')
+    @app.route('/api/v1/latest_data')
     @is_request_gateway
     @valid_api_key
     def get_latest_data():
         return get_all_from_db(graph=False)
 
-    @app.route('/api/v1/all_data/')
+    @app.route('/api/v1/all_data')
     @is_request_gateway
     @valid_api_key
     def get_all_data():
         return get_all_from_db(last_data=False, graph=False)
 
-    @app.route('/data/logs/')
+    @app.route('/data/logs')
     @valid_user
     @is_request_gateway
     def view_data_log():
@@ -207,7 +208,9 @@ def create_app(app):
         temp = json.loads(data[1])['temp']
         return render_template('latest.html', data=data, temp=temp)
 
-    @app.route('/plot/')
+    @app.route('/plot')
+    @valid_user
+    @is_request_gateway
     def plot_data():
         plt.clf()
         fig, ax = plt.subplots()
