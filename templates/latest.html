@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>First page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}"/>
+
+</head>
+<body>
+
+<form action="{{ url_for('view_latest_data') }}">
+    <input class=button type="submit" value="Latest"/>
+</form>
+<form action="{{ url_for('view_data_log') }}">
+    <input class=button type="submit" value="Logs"/>
+</form>
+<form action="{{ url_for('logout') }}">
+    <input class=button-logout type="submit" value="Logout"/>
+</form>
+<br>
+<br>
+<br>
+<p>Current temperature: </p>
+<h1> {{ temp }}°C</h1>
+<h1> {{ data[2] }}</h1>
+
+{% if data[1] is none %}
+    <p>No values to display. Listening to MQTT...</p>
+
+{% endif %}
+
+{% if temp > 20 %}
+    <h1>🔥</h1>
+{% endif %}
+{% if temp < 20 %}
+    <h1>🥶</h1>
+{% endif %}
+</body>
+<script>
+    function reloadPage() {
+        setInterval(reloader, 3000)
+    }
+
+    function reloader() {
+        window.location.reload(true);
+    }
+
+    reloadPage()
+
+</script>
+</html>
