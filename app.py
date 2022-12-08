@@ -82,7 +82,6 @@ def is_request_gateway(func):
     return wrapper
 
 
-
 def get_valid_keys():
     with open('api_keys', mode='r', encoding='utf-8') as file:
         list_keys = [key.rstrip() for key in file.readlines()]
@@ -167,7 +166,6 @@ def create_app(app):
             print('test')
         return render_template("index.html", session=session.get('user'),
                                pretty=json.dumps(session.get('user'), indent=4))
-
 
     @app.route('/api/v1/latest_data')
     @is_request_gateway

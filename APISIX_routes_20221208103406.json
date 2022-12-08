@@ -1,0 +1,660 @@
+{
+  "components": {},
+  "info": {
+    "title": "RoutesExport",
+    "version": "3.0.0"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "api_gatewayGET",
+        "parameters": [{
+          "description": "params in path",
+          "in": "path",
+          "name": "params",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }],
+        "requestBody": {},
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [],
+        "x-apisix-enable_websocket": false,
+        "x-apisix-id": "436825157571445445",
+        "x-apisix-plugins": {
+          "limit-req": {
+            "burst": 5,
+            "disable": false,
+            "key": "rate_msg",
+            "key_type": "var",
+            "rate": 1,
+            "rejected_code": 503,
+            "rejected_msg": "Too many requests"
+          },
+          "proxy-cache": {
+            "cache_ttl": 100,
+            "disable": false
+          },
+          "proxy-rewrite": {
+            "headers": {
+              "who_request": "apisix"
+            }
+          }
+        },
+        "x-apisix-priority": 0,
+        "x-apisix-status": 1,
+        "x-apisix-upstream": {
+          "nodes": [{
+            "host": "host.docker.internal",
+            "port": 3000,
+            "weight": 1
+          }],
+          "timeout": {
+            "connect": 6,
+            "send": 6,
+            "read": 6
+          },
+          "type": "roundrobin",
+          "scheme": "http",
+          "pass_host": "pass",
+          "keepalive_pool": {
+            "idle_timeout": 60,
+            "requests": 1000,
+            "size": 320
+          }
+        }
+      }
+    },
+    "/api/v1/all_data": {
+      "get": {
+        "operationId": "api_gatewayGET",
+        "parameters": [{
+          "description": "params in path",
+          "in": "path",
+          "name": "params",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }],
+        "requestBody": {},
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [],
+        "x-apisix-enable_websocket": false,
+        "x-apisix-id": "436825157571445445",
+        "x-apisix-plugins": {
+          "limit-req": {
+            "burst": 5,
+            "disable": false,
+            "key": "rate_msg",
+            "key_type": "var",
+            "rate": 1,
+            "rejected_code": 503,
+            "rejected_msg": "Too many requests"
+          },
+          "proxy-cache": {
+            "cache_ttl": 100,
+            "disable": false
+          },
+          "proxy-rewrite": {
+            "headers": {
+              "who_request": "apisix"
+            }
+          }
+        },
+        "x-apisix-priority": 0,
+        "x-apisix-status": 1,
+        "x-apisix-upstream": {
+          "nodes": [{
+            "host": "host.docker.internal",
+            "port": 3000,
+            "weight": 1
+          }],
+          "timeout": {
+            "connect": 6,
+            "send": 6,
+            "read": 6
+          },
+          "type": "roundrobin",
+          "scheme": "http",
+          "pass_host": "pass",
+          "keepalive_pool": {
+            "idle_timeout": 60,
+            "requests": 1000,
+            "size": 320
+          }
+        }
+      }
+    },
+    "/api/v1/latest_data": {
+      "get": {
+        "operationId": "api_gatewayGET",
+        "parameters": [{
+          "description": "params in path",
+          "in": "path",
+          "name": "params",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }],
+        "requestBody": {},
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [],
+        "x-apisix-enable_websocket": false,
+        "x-apisix-id": "436825157571445445",
+        "x-apisix-plugins": {
+          "limit-req": {
+            "burst": 5,
+            "disable": false,
+            "key": "rate_msg",
+            "key_type": "var",
+            "rate": 1,
+            "rejected_code": 503,
+            "rejected_msg": "Too many requests"
+          },
+          "proxy-cache": {
+            "cache_ttl": 100,
+            "disable": false
+          },
+          "proxy-rewrite": {
+            "headers": {
+              "who_request": "apisix"
+            }
+          }
+        },
+        "x-apisix-priority": 0,
+        "x-apisix-status": 1,
+        "x-apisix-upstream": {
+          "nodes": [{
+            "host": "host.docker.internal",
+            "port": 3000,
+            "weight": 1
+          }],
+          "timeout": {
+            "connect": 6,
+            "send": 6,
+            "read": 6
+          },
+          "type": "roundrobin",
+          "scheme": "http",
+          "pass_host": "pass",
+          "keepalive_pool": {
+            "idle_timeout": 60,
+            "requests": 1000,
+            "size": 320
+          }
+        }
+      }
+    },
+    "/callback": {
+      "get": {
+        "operationId": "api_gatewayGET",
+        "parameters": [{
+          "description": "params in path",
+          "in": "path",
+          "name": "params",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }],
+        "requestBody": {},
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [],
+        "x-apisix-enable_websocket": false,
+        "x-apisix-id": "436825157571445445",
+        "x-apisix-plugins": {
+          "limit-req": {
+            "burst": 5,
+            "disable": false,
+            "key": "rate_msg",
+            "key_type": "var",
+            "rate": 1,
+            "rejected_code": 503,
+            "rejected_msg": "Too many requests"
+          },
+          "proxy-cache": {
+            "cache_ttl": 100,
+            "disable": false
+          },
+          "proxy-rewrite": {
+            "headers": {
+              "who_request": "apisix"
+            }
+          }
+        },
+        "x-apisix-priority": 0,
+        "x-apisix-status": 1,
+        "x-apisix-upstream": {
+          "nodes": [{
+            "host": "host.docker.internal",
+            "port": 3000,
+            "weight": 1
+          }],
+          "timeout": {
+            "connect": 6,
+            "send": 6,
+            "read": 6
+          },
+          "type": "roundrobin",
+          "scheme": "http",
+          "pass_host": "pass",
+          "keepalive_pool": {
+            "idle_timeout": 60,
+            "requests": 1000,
+            "size": 320
+          }
+        }
+      }
+    },
+    "/data/latest": {
+      "get": {
+        "operationId": "api_gatewayGET",
+        "parameters": [{
+          "description": "params in path",
+          "in": "path",
+          "name": "params",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }],
+        "requestBody": {},
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [],
+        "x-apisix-enable_websocket": false,
+        "x-apisix-id": "436825157571445445",
+        "x-apisix-plugins": {
+          "limit-req": {
+            "burst": 5,
+            "disable": false,
+            "key": "rate_msg",
+            "key_type": "var",
+            "rate": 1,
+            "rejected_code": 503,
+            "rejected_msg": "Too many requests"
+          },
+          "proxy-cache": {
+            "cache_ttl": 100,
+            "disable": false
+          },
+          "proxy-rewrite": {
+            "headers": {
+              "who_request": "apisix"
+            }
+          }
+        },
+        "x-apisix-priority": 0,
+        "x-apisix-status": 1,
+        "x-apisix-upstream": {
+          "nodes": [{
+            "host": "host.docker.internal",
+            "port": 3000,
+            "weight": 1
+          }],
+          "timeout": {
+            "connect": 6,
+            "send": 6,
+            "read": 6
+          },
+          "type": "roundrobin",
+          "scheme": "http",
+          "pass_host": "pass",
+          "keepalive_pool": {
+            "idle_timeout": 60,
+            "requests": 1000,
+            "size": 320
+          }
+        }
+      }
+    },
+    "/data/logs": {
+      "get": {
+        "operationId": "api_gatewayGET",
+        "parameters": [{
+          "description": "params in path",
+          "in": "path",
+          "name": "params",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }],
+        "requestBody": {},
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [],
+        "x-apisix-enable_websocket": false,
+        "x-apisix-id": "436825157571445445",
+        "x-apisix-plugins": {
+          "limit-req": {
+            "burst": 5,
+            "disable": false,
+            "key": "rate_msg",
+            "key_type": "var",
+            "rate": 1,
+            "rejected_code": 503,
+            "rejected_msg": "Too many requests"
+          },
+          "proxy-cache": {
+            "cache_ttl": 100,
+            "disable": false
+          },
+          "proxy-rewrite": {
+            "headers": {
+              "who_request": "apisix"
+            }
+          }
+        },
+        "x-apisix-priority": 0,
+        "x-apisix-status": 1,
+        "x-apisix-upstream": {
+          "nodes": [{
+            "host": "host.docker.internal",
+            "port": 3000,
+            "weight": 1
+          }],
+          "timeout": {
+            "connect": 6,
+            "send": 6,
+            "read": 6
+          },
+          "type": "roundrobin",
+          "scheme": "http",
+          "pass_host": "pass",
+          "keepalive_pool": {
+            "idle_timeout": 60,
+            "requests": 1000,
+            "size": 320
+          }
+        }
+      }
+    },
+    "/login": {
+      "get": {
+        "operationId": "api_gatewayGET",
+        "parameters": [{
+          "description": "params in path",
+          "in": "path",
+          "name": "params",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }],
+        "requestBody": {},
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [],
+        "x-apisix-enable_websocket": false,
+        "x-apisix-id": "436825157571445445",
+        "x-apisix-plugins": {
+          "limit-req": {
+            "burst": 5,
+            "disable": false,
+            "key": "rate_msg",
+            "key_type": "var",
+            "rate": 1,
+            "rejected_code": 503,
+            "rejected_msg": "Too many requests"
+          },
+          "proxy-cache": {
+            "cache_ttl": 100,
+            "disable": false
+          },
+          "proxy-rewrite": {
+            "headers": {
+              "who_request": "apisix"
+            }
+          }
+        },
+        "x-apisix-priority": 0,
+        "x-apisix-status": 1,
+        "x-apisix-upstream": {
+          "nodes": [{
+            "host": "host.docker.internal",
+            "port": 3000,
+            "weight": 1
+          }],
+          "timeout": {
+            "connect": 6,
+            "send": 6,
+            "read": 6
+          },
+          "type": "roundrobin",
+          "scheme": "http",
+          "pass_host": "pass",
+          "keepalive_pool": {
+            "idle_timeout": 60,
+            "requests": 1000,
+            "size": 320
+          }
+        }
+      }
+    },
+    "/logout": {
+      "get": {
+        "operationId": "api_gatewayGET",
+        "parameters": [{
+          "description": "params in path",
+          "in": "path",
+          "name": "params",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }],
+        "requestBody": {},
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [],
+        "x-apisix-enable_websocket": false,
+        "x-apisix-id": "436825157571445445",
+        "x-apisix-plugins": {
+          "limit-req": {
+            "burst": 5,
+            "disable": false,
+            "key": "rate_msg",
+            "key_type": "var",
+            "rate": 1,
+            "rejected_code": 503,
+            "rejected_msg": "Too many requests"
+          },
+          "proxy-cache": {
+            "cache_ttl": 100,
+            "disable": false
+          },
+          "proxy-rewrite": {
+            "headers": {
+              "who_request": "apisix"
+            }
+          }
+        },
+        "x-apisix-priority": 0,
+        "x-apisix-status": 1,
+        "x-apisix-upstream": {
+          "nodes": [{
+            "host": "host.docker.internal",
+            "port": 3000,
+            "weight": 1
+          }],
+          "timeout": {
+            "connect": 6,
+            "send": 6,
+            "read": 6
+          },
+          "type": "roundrobin",
+          "scheme": "http",
+          "pass_host": "pass",
+          "keepalive_pool": {
+            "idle_timeout": 60,
+            "requests": 1000,
+            "size": 320
+          }
+        }
+      }
+    },
+    "/plot": {
+      "get": {
+        "operationId": "api_gatewayGET",
+        "parameters": [{
+          "description": "params in path",
+          "in": "path",
+          "name": "params",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }],
+        "requestBody": {},
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [],
+        "x-apisix-enable_websocket": false,
+        "x-apisix-id": "436825157571445445",
+        "x-apisix-plugins": {
+          "limit-req": {
+            "burst": 5,
+            "disable": false,
+            "key": "rate_msg",
+            "key_type": "var",
+            "rate": 1,
+            "rejected_code": 503,
+            "rejected_msg": "Too many requests"
+          },
+          "proxy-cache": {
+            "cache_ttl": 100,
+            "disable": false
+          },
+          "proxy-rewrite": {
+            "headers": {
+              "who_request": "apisix"
+            }
+          }
+        },
+        "x-apisix-priority": 0,
+        "x-apisix-status": 1,
+        "x-apisix-upstream": {
+          "nodes": [{
+            "host": "host.docker.internal",
+            "port": 3000,
+            "weight": 1
+          }],
+          "timeout": {
+            "connect": 6,
+            "send": 6,
+            "read": 6
+          },
+          "type": "roundrobin",
+          "scheme": "http",
+          "pass_host": "pass",
+          "keepalive_pool": {
+            "idle_timeout": 60,
+            "requests": 1000,
+            "size": 320
+          }
+        }
+      }
+    },
+    "/static/{params}": {
+      "get": {
+        "operationId": "api_gatewayGET",
+        "parameters": [{
+          "description": "params in path",
+          "in": "path",
+          "name": "params",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }],
+        "requestBody": {},
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [],
+        "x-apisix-enable_websocket": false,
+        "x-apisix-id": "436825157571445445",
+        "x-apisix-plugins": {
+          "limit-req": {
+            "burst": 5,
+            "disable": false,
+            "key": "rate_msg",
+            "key_type": "var",
+            "rate": 1,
+            "rejected_code": 503,
+            "rejected_msg": "Too many requests"
+          },
+          "proxy-cache": {
+            "cache_ttl": 100,
+            "disable": false
+          },
+          "proxy-rewrite": {
+            "headers": {
+              "who_request": "apisix"
+            }
+          }
+        },
+        "x-apisix-priority": 0,
+        "x-apisix-status": 1,
+        "x-apisix-upstream": {
+          "nodes": [{
+            "host": "host.docker.internal",
+            "port": 3000,
+            "weight": 1
+          }],
+          "timeout": {
+            "connect": 6,
+            "send": 6,
+            "read": 6
+          },
+          "type": "roundrobin",
+          "scheme": "http",
+          "pass_host": "pass",
+          "keepalive_pool": {
+            "idle_timeout": 60,
+            "requests": 1000,
+            "size": 320
+          }
+        }
+      }
+    }
+  }
+}
