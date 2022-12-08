@@ -26,11 +26,27 @@
     border: none;
     color: white;
     padding: 15px 32px;
+    margin-left: 15px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
     font-size: 16px;
     border-radius: 8px;
+    float: left;
+}
+
+.button-logout {
+    background-color: #f44336; /* Green */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    margin-left: 15px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 8px;
+    float: left;
 }
 
 * {

@@ -7,10 +7,19 @@
 </head>
 
 <body>
-  <form action="{{ url_for('view_latest_data') }}">
-    <input class=button type="submit" value="Home" />
-  </form>
 
+<form action="{{ url_for('view_latest_data') }}">
+    <input class=button type="submit" value="Latest"/>
+</form>
+<form action="{{ url_for('view_data_log') }}">
+    <input class=button type="submit" value="Logs"/>
+</form>
+<form action="{{ url_for('logout') }}">
+    <input class=button-logout type="submit" value="Logout"/>
+</form>
+<br>
+<br>
+<br>
   <img src="{{ url_for('plot_data') }}">
 
   <table id="temptable">

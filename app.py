@@ -86,6 +86,7 @@ def is_request_gateway(func):
     return wrapper
 
 
+
 def get_valid_keys():
     with open('api_keys', mode='r', encoding='utf-8') as file:
         list_keys = [key.rstrip() for key in file.readlines()]
@@ -100,6 +101,7 @@ def valid_user(func):
                 return func(*args, **kwargs)
         except KeyError:
             return jsonify({'error': 'invalid or no token'}), 401
+
     return wrapper
 
 
@@ -113,6 +115,7 @@ def valid_api_key(func):
             if key == user_key:
                 return func(*args, **kwargs)
         return jsonify({'error': 'invalid api key'}), 401
+
     return wrapper
 
 
@@ -159,9 +162,17 @@ def create_app(app):
             )
         )
 
-    @app.route("/home")
+    @app.route("/")
     def home():
-        return render_template("home.html", session=session.get('user'),
+        try:
+            if session["user"]:
+                json_data = get_all_from_db(graph=False)
+                data = json_data[0].json['all_data']
+                temp = json.loads(data[1])['temp']
+                return render_template('latest.html', data=data, temp=temp)
+        except:
+            print('test')
+        return render_template("index.html", session=session.get('user'),
                                pretty=json.dumps(session.get('user'), indent=4))
 
     # Gör en route som skriver ut ett sparat meddelande
@@ -183,16 +194,18 @@ def create_app(app):
     def view_data_log():
         payload_list, date_list = get_all_from_db(last_data=False, graph=True)
         payload_list = [json.loads(data)['temp'] for data in payload_list]
-        return render_template('log.html', payload_data=sorted(payload_list, reverse=True), date_data=sorted(date_list, reverse=True))
+        payload_list.reverse()
+        return render_template('log.html', payload_data=payload_list,
+                               date_data=sorted(date_list, reverse=True))
 
-    @app.route('/')
+    @app.route('/data/latest')
     @valid_user
     @is_request_gateway
     def view_latest_data():
         json_data = get_all_from_db(graph=False)
         data = json_data[0].json['all_data']
         temp = json.loads(data[1])['temp']
-        return render_template('index.html', data=data, temp=temp)
+        return render_template('latest.html', data=data, temp=temp)
 
     @app.route('/plot/')
     def plot_data():
@@ -216,6 +229,7 @@ def create_app(app):
         data.seek(0)
 
         return send_file(data, mimetype='data/png')
+
     return app
 
 
