@@ -110,7 +110,7 @@ def valid_api_key(func):
     def wrapper(*args, **kwargs):
         data = request
         system_keys = get_valid_keys()
-        user_key = data.headers.environ['x-api-key']
+        user_key = data.headers.environ['HTTP_X_API_KEY']
         for key in system_keys:
             if key == user_key:
                 return func(*args, **kwargs)
@@ -182,6 +182,7 @@ def create_app(app):
     @valid_api_key
     def get_latest_data():
         return get_all_from_db(graph=False)
+
 
     @app.route('/api/v1/all_data')
     @is_request_gateway
