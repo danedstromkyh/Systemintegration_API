@@ -15,7 +15,7 @@ ENV_FILE = find_dotenv()
 if ENV_FILE:
     load_dotenv(ENV_FILE)
 
-DATABASE_FILE = os.getenv('DB_PATH')
+DATABASE_FILE = "data.db" # os.getenv('DB_PATH')
 app = Flask(__name__)
 app.secret_key = os.environ.get("APP_SECRET_KEY")
 
