@@ -1,4 +1,3 @@
-import base64
 import io
 import os
 from functools import wraps
@@ -16,17 +15,15 @@ ENV_FILE = find_dotenv()
 if ENV_FILE:
     load_dotenv(ENV_FILE)
 
-# DATABASE_FILE = 'data.db'
 DATABASE_FILE = os.getenv('DB_PATH')
 app = Flask(__name__)
 app.secret_key = os.environ.get("APP_SECRET_KEY")
 
-# Ställ in MQTT-klienten
 app.config['MQTT_BROKER_URL'] = 'broker.hivemq.com'
 app.config['MQTT_BROKER_PORT'] = 1883
 app.config['MQTT_USERNAME'] = ''
 app.config['MQTT_PASSWORD'] = ''
-app.config['MQTT_KEEPALIVE'] = 5  # Sekunder
+app.config['MQTT_KEEPALIVE'] = 5
 app.config['MQTT_TLS_ENABLED'] = False
 
 topic = '/kyh/temp_sensor'
@@ -45,7 +42,6 @@ oauth.register(
 )
 
 
-# Hantera MQTT-connect
 @mqtt_client.on_connect()
 def handle_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -167,22 +163,17 @@ def create_app(app):
         try:
             if session["user"]:
                 return view_latest_data()
-                # json_data = get_all_from_db(graph=False)
-                # data = json_data[0].json['all_data']
-                # temp = json.loads(data[1])['temp']
-                # return render_template('latest.html', data=data, temp=temp)
         except KeyError:
             print('test')
         return render_template("index.html", session=session.get('user'),
                                pretty=json.dumps(session.get('user'), indent=4))
 
-    # Gör en route som skriver ut ett sparat meddelande
+
     @app.route('/api/v1/latest_data')
     @is_request_gateway
     @valid_api_key
     def get_latest_data():
         return get_all_from_db(graph=False)
-
 
     @app.route('/api/v1/all_data')
     @is_request_gateway
@@ -226,7 +217,7 @@ def create_app(app):
         plt.xticks(rotation=90)
         plt.ylabel("Temp C°")
 
-        canvas = FigureCanvas(fig)
+        FigureCanvas(fig)
         data = io.BytesIO()
         fig.savefig(data)
         plt.show()
