@@ -15,7 +15,7 @@ ENV_FILE = find_dotenv()
 if ENV_FILE:
     load_dotenv(ENV_FILE)
 
-DATABASE_FILE = "data.db" # os.getenv('DB_PATH')
+DATABASE_FILE = "data.db"  # os.getenv('DB_PATH'), use os.getenv if run configuration has issues
 app = Flask(__name__)
 app.secret_key = os.environ.get("APP_SECRET_KEY")
 
@@ -25,10 +25,9 @@ app.config['MQTT_USERNAME'] = ''
 app.config['MQTT_PASSWORD'] = ''
 app.config['MQTT_KEEPALIVE'] = 5
 app.config['MQTT_TLS_ENABLED'] = False
-
 topic = '/kyh/temp_sensor'
-mqtt_client = Mqtt(app)
 
+mqtt_client = Mqtt(app)
 oauth = OAuth(app)
 
 oauth.register(
@@ -51,16 +50,12 @@ def handle_connect(client, userdata, flags, rc):
         print('Something went wrong:', rc)
 
 
-# On-message-funktion
 @mqtt_client.on_message()
 def handle_mqtt_message(client, user_data, message):
     m_topic = message.topic
     m_payload = message.payload.decode('utf-8')
     print(f'Received message on topic: {m_topic}: {m_payload}')
-
-    # Time stamp, sensor data: value
     date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
     db_conn = user_data['db_conn']
     sql = 'INSERT INTO mqtt_data (payload, created_at) VALUES (?, ?)'
     cursor = db_conn.cursor()
@@ -69,6 +64,7 @@ def handle_mqtt_message(client, user_data, message):
     cursor.close()
 
 
+# Check if request is from apisix
 def is_request_gateway(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -79,15 +75,18 @@ def is_request_gateway(func):
                 return func(*args, **kwargs)
         except KeyError:
             return jsonify({'error': 'forbidden access'}), 403
+
     return wrapper
 
 
+# Get api-keys from api_keys.txt
 def get_valid_keys():
     with open('api_keys', mode='r', encoding='utf-8') as file:
         list_keys = [key.rstrip() for key in file.readlines()]
         return list_keys
 
 
+# Check if session includes a user-token from Oauth.
 def valid_user(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -136,6 +135,7 @@ def create_app(app):
             redirect_uri=url_for("callback", _external=True)
         )
 
+    # Oauth-hanlder func, callback on successful login
     @app.route("/callback", methods=["GET", "POST"])
     def callback():
         token = oauth.auth0.authorize_access_token()
@@ -158,14 +158,13 @@ def create_app(app):
         )
 
     @app.route("/")
-    def home():
+    def index():
         try:
             if session["user"]:
                 return view_latest_data()
         except KeyError:
-            print('test')
-        return render_template("index.html", session=session.get('user'),
-                               pretty=json.dumps(session.get('user'), indent=4))
+            return render_template("index.html", session=session.get('user'),
+                                   pretty=json.dumps(session.get('user'), indent=4))
 
     @app.route('/api/v1/latest_data')
     @is_request_gateway
@@ -198,6 +197,7 @@ def create_app(app):
         temp = json.loads(data[1])['temp']
         return render_template('latest.html', data=data, temp=temp)
 
+    # Plot data using matplotlib. Used for displaying graph in log.html
     @app.route('/plot')
     @valid_user
     @is_request_gateway
